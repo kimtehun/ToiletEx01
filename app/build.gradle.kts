@@ -1,11 +1,20 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
 }
 
+
 android {
     namespace = "com.example.toiletex01"
     compileSdk = 35
+
+    val properties = Properties()
+    properties.load(FileInputStream(rootProject.file("local.properties")))
+
+
 
     defaultConfig {
         applicationId = "com.example.toiletex01"
@@ -14,10 +23,17 @@ android {
         versionCode = 1
         versionName = "1.0"
 
+        buildConfigField("String", "CLIENT_ID", properties.getProperty("CLIENT_ID"))
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
+    }
+
+    buildFeatures {
+        viewBinding = true
+        buildConfig = true
     }
 
     buildTypes {
@@ -68,10 +84,3 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 }
 
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-        maven("https://repository.map.naver.com/archive/maven")
-    }
-}
