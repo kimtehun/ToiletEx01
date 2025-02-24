@@ -67,3 +67,11 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 }
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        maven("https://repository.map.naver.com/archive/maven")
+    }
+}
