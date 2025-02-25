@@ -13,7 +13,10 @@ android {
 
     val properties = Properties()
     properties.load(FileInputStream(rootProject.file("local.properties")))
-
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        properties.load(localPropertiesFile.inputStream())
+    }
 
 
     defaultConfig {
@@ -23,12 +26,20 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        buildConfigField("String", "CLIENT_ID", properties.getProperty("CLIENT_ID"))
+        val naverClinedId = properties.getProperty("client_id") ?: ""
+        // 매니페스트 플레이스홀더 설정
+        manifestPlaceholders["CLIENT_ID"] = naverClinedId
+        // 코드 상에서 local.properties 변수 사용
+
+//        buildConfigField("String", "CLIENT_ID", properties.getProperty("client_id"))
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
+
+
+
     }
 
     buildTypes {
@@ -79,5 +90,6 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    implementation(libs.com.naver.maps)
+    implementation(libs.androidx.constraintlayout)
 }
-
