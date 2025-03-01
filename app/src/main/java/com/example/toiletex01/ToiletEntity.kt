@@ -1,3 +1,5 @@
+package com.example.toiletex01
+
 data class ToiletEntity(
     val num : Int ,
     val division : String ,
