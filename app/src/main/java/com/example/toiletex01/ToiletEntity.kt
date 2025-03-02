@@ -7,7 +7,7 @@ data class ToiletEntity(
     val roadNameAddress : String ,
     val streetNumberAddress : String ,
     val openingHoursDetails : String ,
-    val installationDate : String ,
+    val installationDate : String  ,
     val latitude : String ,
     val longitude : String ,
     val dataBaseDate : String ,

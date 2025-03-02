@@ -1,0 +1,62 @@
+package com.example.toiletex01
+
+import android.content.Context
+import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteOpenHelper
+
+
+class LocationDatabaseHelper(context: Context) : SQLiteOpenHelper(context, "toiletdb.db", null, 24) {
+
+    override fun onCreate(db: SQLiteDatabase) {
+        // 이미 DB가 존재한다고 가정. 필요 시 스키마 작성 가능.
+        // ToiletEntity 테이블을 생성하는 쿼리문 (테이블이 없을 경우에만 생성)
+//        val createTableQuery = """
+//            CREATE TABLE IF NOT EXISTS csv3 (
+//                num INTEGER PRIMARY KEY,
+//                division TEXT,
+//                toiletName TEXT,
+//                roadNameAddress TEXT,
+//                streetNumberAddress TEXT,
+//                openingHoursDetails TEXT,
+//                installationDate TEXT,
+//                latitude TEXT,
+//                longitude TEXT,
+//                dataBaseDate TEXT,
+//                pw TEXT
+//            );
+//        """.trimIndent()
+//
+//        db.execSQL(createTableQuery)
+
+    }
+
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {}
+
+    fun getAllLocations(): List<SimpleToiletEntity> {
+        val db = readableDatabase
+        val cursor = db.rawQuery(
+            "SELECT num, toiletName, latitude, longitude FROM ex01", null)
+
+        val locations = mutableListOf<SimpleToiletEntity>()
+        while (cursor.moveToNext()) {
+            val num = cursor.getInt(0)
+            val toiletName = cursor.getString(1)
+            val latitude = cursor.getString(2)
+            val longitude = cursor.getString(3)
+//            val num = cursor.getInt(0)
+//            val division = cursor.getString(1)
+//            val toiletName = cursor.getString(2)
+//            val roadNameAddress = cursor.getString(3)
+//            val streetNumberAddress = cursor.getString(4)
+//            val openingHoursDetails = cursor.getString(5)
+//            val installationDate = cursor.getString(6)
+//            val latitude = cursor.getString(7)
+//            val longitude = cursor.getString(8)
+//            val dataBaseDate = cursor.getString(9)
+//            val pw = cursor.getString(10)
+            locations.add(SimpleToiletEntity(num, toiletName,latitude, longitude))
+        }
+        cursor.close()
+        return locations
+    }
+}
