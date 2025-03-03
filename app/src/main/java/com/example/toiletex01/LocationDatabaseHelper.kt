@@ -60,4 +60,51 @@ class LocationDatabaseHelper(context: Context) : SQLiteOpenHelper(context, "toil
         cursor.close()
         return locations
     }
+
+    fun getToiletById(num: Int): SimpleToiletEntity? {
+        val db = this.readableDatabase
+        var toilet: SimpleToiletEntity? = null
+
+        Log.d("DB_QUERY", "getToiletById 호출, num: $num")
+
+        // id에 해당하는 행을 조회 (모든 컬럼 선택)
+        val cursor = db.query(
+            "ex01",
+            null, // 모든 컬럼 선택
+            "num = ?",
+            arrayOf(num.toString()),
+            null,
+            null,
+            null
+        )
+
+        if (cursor != null) {
+            Log.d("DB_QUERY", "cursor count: ${cursor.count}")
+            if (cursor.moveToFirst()) {
+                // 각 컬럼의 인덱스를 가져와 값 읽기
+                val toiletNum = cursor.getInt(cursor.getColumnIndexOrThrow("num"))
+                val toiletName = cursor.getString(cursor.getColumnIndexOrThrow("toiletName"))
+                val latitude = cursor.getString(cursor.getColumnIndexOrThrow("latitude"))
+                val longitude = cursor.getString(cursor.getColumnIndexOrThrow("longitude"))
+                val pw = cursor.getString(cursor.getColumnIndexOrThrow("pw"))
+
+                Log.d("DB_QUERY", "레코드 읽음: toiletNum=$toiletNum, toiletName=$toiletName")
+
+                toilet = SimpleToiletEntity(
+                    num = toiletNum,
+                    toiletName = toiletName,
+                    latitude = latitude,
+                    longitude = longitude,
+                    pw = pw
+                )
+            } else {
+                Log.e("DB_QUERY", "레코드가 없습니다. num: $num")
+            }
+
+            cursor.close()
+        } else {
+            Log.e("DB_QUERY", "Cursor가 null입니다.")
+        }
+        return toilet
+    }
 }
