@@ -101,7 +101,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
     }
     //클러스터 기능이 필요하면 이 부분을 다시 살려내면 된다
     //하지만 현재 이 프로젝트에는 화장실 정보가 한정적으로 있기에 넣지 않는것이 맞아보여서 주석처리해둠
-    /*
+
     private fun updateMarkersFromDb() {
         val currentZoom = naverMap.cameraPosition.zoom
 
@@ -188,8 +188,9 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
             }
         }
     }
-    */
 
+    //부분 업데이트로 보여주고 싶다면 아래 코드를 주석처리 해제 하면 된다
+/*
     private fun updateMarkersFromDb() {
 
         val currentZoom = naverMap.cameraPosition.zoom
@@ -267,7 +268,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
         }
 
     }
-
+*/
     private fun getToiletLocationsFromDb(): List<SimpleToiletEntity> {
         return dbHelper.getAllLocations() // SQLite 또는 Room에서 데이터를 가져온다고 가정
     }
