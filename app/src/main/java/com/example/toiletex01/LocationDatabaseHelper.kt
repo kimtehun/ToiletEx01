@@ -35,7 +35,7 @@ class LocationDatabaseHelper(context: Context) : SQLiteOpenHelper(context, "toil
     fun getAllLocations(): List<SimpleToiletEntity> {
         val db = readableDatabase
         val cursor = db.rawQuery(
-            "SELECT num, toiletName, latitude, longitude FROM ex01", null)
+            "SELECT num, toiletName, latitude, longitude, pw FROM ex01", null)
 
         val locations = mutableListOf<SimpleToiletEntity>()
         while (cursor.moveToNext()) {
@@ -43,6 +43,7 @@ class LocationDatabaseHelper(context: Context) : SQLiteOpenHelper(context, "toil
             val toiletName = cursor.getString(1)
             val latitude = cursor.getString(2)
             val longitude = cursor.getString(3)
+            val pw = cursor.getString(4)
 //            val num = cursor.getInt(0)
 //            val division = cursor.getString(1)
 //            val toiletName = cursor.getString(2)
