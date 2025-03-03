@@ -2,6 +2,7 @@ package com.example.toiletex01
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.example.toiletex01.databinding.ActivityMainBinding
@@ -10,6 +11,7 @@ import com.naver.maps.map.CameraUpdate
 import com.naver.maps.map.MapFragment
 import com.naver.maps.map.NaverMap
 import com.naver.maps.map.OnMapReadyCallback
+import com.naver.maps.map.overlay.InfoWindow
 import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.util.FusedLocationSource
 import kotlinx.coroutines.Dispatchers
@@ -25,6 +27,12 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
     private lateinit var dbHelper: LocationDatabaseHelper
 
     private lateinit var locationSource: FusedLocationSource
+
+    // 마커 리스트
+    private val markers = mutableListOf<Marker>()
+
+    // 줌 레벨 기준 설정 (예: 10 미만이면 마커 숨김)
+    private val MIN_ZOOM_LEVEL = 10f
 
     companion object {
         private const val LOCATION_PERMISSION_REQUEST_CODE = 1000
@@ -97,19 +105,19 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
     }
 
     private fun updateMarkersFromDb() {
-        // 비동기적으로 DB 조회 후 마커 갱신
-        lifecycleScope.launch {
-            val locations = withContext(Dispatchers.IO) {
-                dbHelper.getAllLocations()
-            }
-            refreshMarkers(locations)
-        }
-    }
+        val currentZoom = naverMap.cameraPosition.zoom
 
-    private fun refreshMarkers(locations: List<SimpleToiletEntity>) {
-        // 기존 마커 전부 제거
-        markers.forEach { it.map = null }
-        markers.clear()
+        // 줌 레벨이 낮으면 기존 마커 숨기고 return
+        if (currentZoom < MIN_ZOOM_LEVEL) {
+            markers.forEach { it.map = null }
+            markers.clear()
+            return
+        }
+
+        lifecycleScope.launch {
+            // 1. 기존 마커 삭제
+            markers.forEach { it.map = null }
+            markers.clear()
 
         // 새 데이터로 마커 추가
         locations.forEach { location ->
