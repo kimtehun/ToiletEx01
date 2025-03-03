@@ -99,7 +99,9 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
             updateMarkersFromDb()
         }
     }
-/*
+    //클러스터 기능이 필요하면 이 부분을 다시 살려내면 된다
+    //하지만 현재 이 프로젝트에는 화장실 정보가 한정적으로 있기에 넣지 않는것이 맞아보여서 주석처리해둠
+    /*
     private fun updateMarkersFromDb() {
         val currentZoom = naverMap.cameraPosition.zoom
 
