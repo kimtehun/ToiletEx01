@@ -3,6 +3,7 @@ package com.example.toiletex01
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import android.util.Log
 
 
 class LocationDatabaseHelper(context: Context) : SQLiteOpenHelper(context, "toiletdb.db", null, 24) {
