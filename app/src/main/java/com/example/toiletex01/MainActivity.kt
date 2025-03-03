@@ -73,8 +73,8 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
     override fun onMapReady(map: NaverMap) {
         this.naverMap = map
 
-        this.naverMap.moveCamera(CameraUpdate.scrollTo(LatLng(37.5665, 126.9780)))  // 서울 기본 위치
-
+        // 기본 위치 설정 (서울)
+        this.naverMap.moveCamera(CameraUpdate.scrollTo(LatLng(37.5665, 126.9780)))
 
         // FusedLocationSource 할당 (내 위치 정보가 비동기적으로 업데이트됨)
         naverMap.locationSource = locationSource
@@ -85,19 +85,15 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
         // 현재 위치 오버레이를 보이게 설정 (SDK가 내부적으로 현재 위치를 받아 업데이트)
         naverMap.locationOverlay.isVisible = true
 
-        // 추가로, 위치 변경 시 다른 UI 업데이트를 원한다면 아래와 같이 FusedLocationProviderClient를 활용하거나
-        // NaverMap의 내장 업데이트에 콜백을 연결할 수 있습니다.
-
-        lifecycleScope.launch {
-            // 지도 이동이 끝났을 때 (idle 상태)마다 마커 업데이트
-            naverMap.addOnCameraIdleListener {
-                updateMarkersFromDb()
-            }
-
-            // 앱 최초 실행 시에도 한 번 마커 표시
+        // 지도 이동이 끝났을 때마다 마커 업데이트 (줌 레벨 고려)
+        naverMap.addOnCameraIdleListener {
             updateMarkersFromDb()
         }
 
+        // 앱 최초 실행 시에도 마커 업데이트
+        lifecycleScope.launch {
+            updateMarkersFromDb()
+        }
     }
 
     private fun updateMarkersFromDb() {
@@ -221,7 +217,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
             }
         }
     }
-
+//
     override fun onRequestPermissionsResult(
         requestCode: Int, permissions: Array<out String>, grantResults: IntArray
     ) {
