@@ -1,5 +1,6 @@
 package com.example.toiletex01
 
+import android.content.ContentValues.TAG
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
@@ -27,6 +28,9 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
     private lateinit var dbHelper: LocationDatabaseHelper
 
     private lateinit var locationSource: FusedLocationSource
+
+    // 고유 id(num)를 키로 하여 현재 지도에 추가된 마커들을 관리하는 Map
+    private val markerMap = mutableMapOf<Int, Marker>()
 
     // 마커 리스트
     private val markers = mutableListOf<Marker>()
@@ -95,7 +99,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
             updateMarkersFromDb()
         }
     }
-
+/*
     private fun updateMarkersFromDb() {
         val currentZoom = naverMap.cameraPosition.zoom
 
@@ -181,6 +185,85 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
                 markers.add(marker)
             }
         }
+    }
+    */
+
+    private fun updateMarkersFromDb() {
+
+        val currentZoom = naverMap.cameraPosition.zoom
+        Log.d(TAG, "현재 줌 레벨: $currentZoom")
+        if (currentZoom < MIN_ZOOM_LEVEL) {
+            Log.d(TAG, "줌 레벨이 낮아서 모든 마커 제거")
+            markerMap.values.forEach { it.map = null }
+            markerMap.clear()
+            return
+        }
+
+        lifecycleScope.launch {
+            // DB에서 최신 데이터 가져오기 (예: List<SimpleToiletEntity>)
+            val newData = withContext(Dispatchers.IO) { getToiletLocationsFromDb() }
+            Log.d(TAG, "DB에서 가져온 데이터 개수: ${newData.size}")
+
+            // 새로운 데이터의 고유 id 집합
+            val newIds = newData.map { it.num }.toSet()
+
+            // 1. markerMap에 있으나 새로운 데이터에 없는 마커 제거
+            val toRemove = markerMap.keys.filter { it !in newIds }
+            toRemove.forEach { id ->
+                markerMap[id]?.let { marker ->
+                    marker.map = null
+                    Log.d(TAG, "마커 제거: id=$id")
+                }
+                markerMap.remove(id)
+            }
+
+            // 2. 새로운 데이터에 대해 업데이트 또는 추가
+            newData.forEach { location ->
+                val lat = location.latitude?.toDoubleOrNull() ?: 0.0
+                val lng = location.longitude?.toDoubleOrNull() ?: 0.0
+                val position = LatLng(lat, lng)
+                if (markerMap.containsKey(location.num)) {
+                    // 이미 존재하는 마커 업데이트
+                    val marker = markerMap[location.num]
+                    if (marker != null) {
+                        if (marker.position != position) {
+                            marker.position = position
+                            Log.d(TAG, "마커 위치 업데이트: id=${location.num}")
+                        }
+                        val newCaption = location.toiletName ?: "정보 없음"
+                        if (marker.captionText != newCaption) {
+                            marker.captionText = newCaption
+                            Log.d(TAG, "마커 캡션 업데이트: id=${location.num}")
+                        }
+                    }
+                } else {
+                    // 새 마커 추가
+                    val marker = Marker().apply {
+                        this.position = position
+                        captionText = location.toiletName ?: "정보 없음"
+                        map = naverMap
+                        tag = location.num  // 고유 id 저장
+                    }
+                    // 마커 클릭 이벤트 등록: 클릭 시 DB에서 상세 정보를 조회하여 UI에 표시
+                    marker.setOnClickListener { overlay ->
+                        val id = marker.tag as? Int
+                        Log.d(TAG, "마커 클릭됨, id=$id")
+                        if (id != null) {
+                            lifecycleScope.launch {
+                                val detail =
+                                    withContext(Dispatchers.IO) { dbHelper.getToiletById(id) }
+                                Log.d(TAG, "DB 조회 결과: $detail")
+                                showToiletInfo(detail)
+                            }
+                        }
+                        true
+                    }
+                    markerMap[location.num] = marker
+                    Log.d(TAG, "새 마커 추가: id=${location.num}")
+                }
+            }
+        }
+
     }
 
     private fun getToiletLocationsFromDb(): List<SimpleToiletEntity> {
