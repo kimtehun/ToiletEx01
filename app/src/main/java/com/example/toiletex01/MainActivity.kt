@@ -38,10 +38,6 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
         private const val LOCATION_PERMISSION_REQUEST_CODE = 1000
     }
 
-    // 현재 표시 중인 마커 리스트
-    private val markers = mutableListOf<Marker>()
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
