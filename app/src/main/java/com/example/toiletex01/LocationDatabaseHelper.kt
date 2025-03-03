@@ -12,17 +12,11 @@ class LocationDatabaseHelper(context: Context) : SQLiteOpenHelper(context, "toil
         // 이미 DB가 존재한다고 가정. 필요 시 스키마 작성 가능.
         // ToiletEntity 테이블을 생성하는 쿼리문 (테이블이 없을 경우에만 생성)
 //        val createTableQuery = """
-//            CREATE TABLE IF NOT EXISTS csv3 (
-//                num INTEGER PRIMARY KEY,
-//                division TEXT,
+//            CREATE TABLE IF NOT EXISTS ex01 (
+//                num INTEGER ,
 //                toiletName TEXT,
-//                roadNameAddress TEXT,
-//                streetNumberAddress TEXT,
-//                openingHoursDetails TEXT,
-//                installationDate TEXT,
 //                latitude TEXT,
 //                longitude TEXT,
-//                dataBaseDate TEXT,
 //                pw TEXT
 //            );
 //        """.trimIndent()

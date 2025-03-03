@@ -352,11 +352,20 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
                 .show()
             return
         }
-        val infoText = """
+        val infoText : String
+        if(toilet.pw.toInt() == 0){
+            infoText = """
+        화장실 이름: ${toilet.toiletName}
+        비밀번호: 없음
+        기타 정보: ...
+    """.trimIndent()
+        } else {
+            infoText = """
         화장실 이름: ${toilet.toiletName}
         비밀번호: ${toilet.pw ?: "정보 없음"}
         기타 정보: ...
     """.trimIndent()
+        }
 
         androidx.appcompat.app.AlertDialog.Builder(this)
             .setTitle("화장실 상세 정보")
@@ -364,5 +373,4 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
             .setPositiveButton("확인", null)
             .show()
     }
-
 }

@@ -12,4 +12,38 @@
         android:layout_height="match_parent"
         android:name="com.naver.maps.map.MapFragment"/>
 
+    <!-- 하단 중앙에 배치된 버튼 컨테이너 -->
+    <LinearLayout
+        android:id="@+id/button_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="16dp">
+
+        <Button
+            android:id="@+id/addToilet"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="화장실\n 추가"
+            android:layout_marginEnd="30dp" />
+
+        <Button
+            android:id="@+id/importInfoToilet"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="화장실 정보\n 불러오기"
+            android:layout_marginEnd="30dp" />
+
+        <Button
+            android:id="@+id/exportInfoToilet"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="화장실 정보\n 내보내기" />
+
+
+    </LinearLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
