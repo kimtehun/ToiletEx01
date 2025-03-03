@@ -55,7 +55,7 @@ class LocationDatabaseHelper(context: Context) : SQLiteOpenHelper(context, "toil
 //            val longitude = cursor.getString(8)
 //            val dataBaseDate = cursor.getString(9)
 //            val pw = cursor.getString(10)
-            locations.add(SimpleToiletEntity(num, toiletName,latitude, longitude))
+            locations.add(SimpleToiletEntity(num, toiletName,latitude, longitude, pw))
         }
         cursor.close()
         return locations
