@@ -115,17 +115,81 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
             markers.forEach { it.map = null }
             markers.clear()
 
-        // 새 데이터로 마커 추가
-        locations.forEach { location ->
-            val marker = Marker().apply {
-                position = LatLng(location.latitude.toDouble(), location.longitude.toDouble())
-                captionText = location.toiletName
-                map = naverMap
+            // 2. DB에서 마커 데이터를 가져옴 (예제에서는 로컬 DB에서 가져온다고 가정)
+            val dbLocations = withContext(Dispatchers.IO) { getToiletLocationsFromDb() }
+
+            dbLocations.forEach { location ->
+                // latitude, longitude가 String 타입인 경우 안전하게 변환 (또는 이미 Double 타입이면 바로 사용)
+                val lat = location.latitude.toDoubleOrNull() ?: 0.0
+                val lng = location.longitude.toDoubleOrNull() ?: 0.0
+
+                // 마커 생성 및 속성 설정, tag에 고유 id 저장
+                val marker = Marker().apply {
+                    position = LatLng(lat, lng)
+                    captionText = location.toiletName ?: "정보 없음"
+                    map = naverMap
+                    tag = location.num  // DB의 고유 id를 저장 (예: Int 타입)
+                }
+
+                Log.d("MARKER_TAG", "마커 생성 - tag: ${location.num}")
+
+                // 마커 클릭 시, tag를 이용해 DB에서 상세 정보 조회 후 UI에 표시
+                marker.setOnClickListener { overlay ->
+                    val num = marker.tag as? Int
+                    if (num != null) {
+                        lifecycleScope.launch {
+                            val detail = withContext(Dispatchers.IO) {
+                                dbHelper.getToiletById(num)
+                            }
+                            showToiletInfo(detail)
+                        }
+                    }
+                    true // 클릭 이벤트 처리가 완료되었음을 반환
+                }
+
+                markers.add(marker)
             }
-            markers.add(marker)
+
+            // 지도에 보이는 영역 내의 데이터만 필터링
+            val visibleLocations = dbLocations.filter { location ->
+                val lat = location.latitude.toDoubleOrNull() ?: 0.0
+                val lng = location.longitude.toDoubleOrNull() ?: 0.0
+                naverMap.contentBounds.contains(LatLng(lat, lng))
+            }
+
+            // 클러스터링 적용 (여기서는 간단한 그리드 기반 클러스터링 사용)
+            val clusters = clusterLocations(visibleLocations)
+
+            // 각 클러스터마다 마커 생성
+            clusters.forEach { cluster ->
+                val marker = Marker().apply {
+                    position = cluster.center
+                    // 클러스터 내 항목이 2개 이상이면 클러스터 개수 표시, 아니면 빈 문자열
+                    captionText = if (cluster.items.size > 1) "${cluster.items.size}" else ""
+                    map = naverMap
+                }
+                marker.setOnClickListener { overlay ->
+                    // 예를 들어, 클러스터 내부의 첫 번째 아이템 정보를 표시하거나
+                    // 상세 화면으로 이동하는 로직 추가 가능
+                    val firstItem = cluster.items.firstOrNull()
+                    if (firstItem != null) {
+                        lifecycleScope.launch {
+                            val detail = withContext(Dispatchers.IO) {
+                                dbHelper.getToiletById(firstItem.num)
+                            }
+                            showToiletInfo(detail)
+                        }
+                    }
+                    true
+                }
+                markers.add(marker)
+            }
         }
     }
 
+    private fun getToiletLocationsFromDb(): List<SimpleToiletEntity> {
+        return dbHelper.getAllLocations() // SQLite 또는 Room에서 데이터를 가져온다고 가정
+    }
 
     // suspend 함수로 정의하여 IO 스레드에서 복사 작업 실행
     suspend fun copyDatabaseFromAssets(context: Context) {
@@ -170,4 +234,53 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
+
+    private fun clusterLocations(locations: List<SimpleToiletEntity>): List<Cluster> {
+        val clusters = mutableListOf<Cluster>()
+        // 그리드 크기는 줌 레벨에 따라 조정할 수 있으며, 여기서는 예시로 0.01도를 사용합니다.
+        val gridSize = 0.01
+        val grid = mutableMapOf<Pair<Int, Int>, MutableList<SimpleToiletEntity>>()
+
+        locations.forEach { loc ->
+            // latitude와 longitude가 null일 경우 기본값 0.0 사용 (실제 서비스에서는 필터링하는 것이 좋습니다)
+            val lat = loc.latitude.toDoubleOrNull() ?: 0.0
+            val lng = loc.longitude.toDoubleOrNull() ?: 0.0
+            // 그리드 셀 좌표 계산 (간단한 방식)
+            val cellX = (lat / gridSize).toInt()
+            val cellY = (lng / gridSize).toInt()
+            val key = Pair(cellX, cellY)
+            grid.getOrPut(key) { mutableListOf() }.add(loc)
+        }
+
+        // 각 셀마다 클러스터 생성 (평균 좌표를 클러스터 중심으로 사용)
+        grid.forEach { (_, items) ->
+            val avgLat = items.map { it.latitude.toDoubleOrNull() ?: 0.0 }.average()
+            val avgLng = items.map { it.longitude.toDoubleOrNull() ?: 0.0 }.average()
+            clusters.add(Cluster(LatLng(avgLat, avgLng), items))
+        }
+        return clusters
+    }
+
+    private fun showToiletInfo(toilet: SimpleToiletEntity?) {
+        if (toilet == null) {
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("오류")
+                .setMessage("해당 화장실 정보를 찾을 수 없습니다.")
+                .setPositiveButton("확인", null)
+                .show()
+            return
+        }
+        val infoText = """
+        화장실 이름: ${toilet.toiletName}
+        비밀번호: ${toilet.pw ?: "정보 없음"}
+        기타 정보: ...
+    """.trimIndent()
+
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("화장실 상세 정보")
+            .setMessage(infoText)
+            .setPositiveButton("확인", null)
+            .show()
+    }
+
 }
