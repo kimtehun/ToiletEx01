@@ -116,4 +116,28 @@ class LocationDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATAB
         }
         return toilet
     }
+
+    /**
+     * 새 레코드를 추가하는 메소드.
+     * 현재 테이블에서 가장 큰 num 값에 1을 더한 값을 새 레코드의 num으로 사용하여 삽입합니다.
+     */
+    fun addToiletById() {
+        val db = writableDatabase
+
+        // 현재 테이블의 최대 num 값을 조회
+        val cursor = db.rawQuery("SELECT COALESCE(MAX($COLUMN_NUM), 0) AS max_num FROM $TABLE_TOILETS", null)
+        var nextNum = 1
+        if (cursor.moveToFirst()) {
+            // 단일 열 반환이므로 인덱스 0을 사용
+            nextNum = cursor.getInt(0) + 1
+        }
+        cursor.close()
+
+        // 새로운 레코드를 삽입하는 SQL 구문 (다른 컬럼은 기본값 사용)
+        val sql = "INSERT INTO $TABLE_TOILETS ($COLUMN_NUM, $COLUMN_TOILET_NAME, $COLUMN_LATITUDE, $COLUMN_LONGITUDE, $COLUMN_PW) VALUES (?, ?, ?, ?, ?)"
+        // 예시: 새 레코드의 toiletName은 "New Toilet", 위치는 기본값, pw는 "default"
+        db.execSQL(sql, arrayOf(nextNum, "Home", "37.5337", "126.6652", "0"))
+        Log.d("DB_INSERT", "새 레코드 삽입: num=$nextNum")
+    }
+
 }
