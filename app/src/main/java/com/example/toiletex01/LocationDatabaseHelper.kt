@@ -6,7 +6,21 @@ import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
 
 
-class LocationDatabaseHelper(context: Context) : SQLiteOpenHelper(context, "toiletdb.db", null, 24) {
+class LocationDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
+
+    companion object {
+        private const val DATABASE_NAME = "toiletdb.db"
+        private const val DATABASE_VERSION = 24
+
+        // 테이블 이름과 컬럼명 (실제 DB 스키마에 맞게 수정)
+        private const val TABLE_TOILETS = "ex01"
+        private const val COLUMN_NUM = "num"
+        private const val COLUMN_TOILET_NAME = "toiletName"
+        private const val COLUMN_LATITUDE = "latitude"
+        private const val COLUMN_LONGITUDE = "longitude"
+        private const val COLUMN_PW = "pw"
+
+    }
 
     override fun onCreate(db: SQLiteDatabase) {
         // 이미 DB가 존재한다고 가정. 필요 시 스키마 작성 가능.
