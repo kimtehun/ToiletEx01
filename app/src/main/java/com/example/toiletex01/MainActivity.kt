@@ -315,6 +315,34 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
                 Log.e("DB_COPY", "Error copying database", e)
             }
         }
+
+//        withContext(Dispatchers.IO) {
+//            try {
+//                // assets에서 데이터베이스 파일 읽기
+//                val assetManager = context.assets
+//                val inputStream = assetManager.open("toiletdb.db")
+//
+//                // 복사할 경로 지정
+//                val outFileName = context.getDatabasePath("toiletdb.db").path
+//                val outputFile = File(outFileName)
+//                outputFile.parentFile?.mkdirs()
+//
+//                // 파일 복사 작업
+//                inputStream.use { input ->
+//                    FileOutputStream(outputFile).use { output ->
+//                        val buffer = ByteArray(1024)
+//                        var length: Int
+//                        while (input.read(buffer).also { length = it } > 0) {
+//                            output.write(buffer, 0, length)
+//                        }
+//                        output.flush()
+//                    }
+//                }
+//            } catch (e: Exception) {
+//                e.printStackTrace()
+//                // 예외 발생 시 적절한 처리가 필요합니다.
+//            }
+//        }
     }
 //
     override fun onRequestPermissionsResult(
