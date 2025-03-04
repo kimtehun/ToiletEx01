@@ -80,7 +80,7 @@ class LocationDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATAB
         val cursor = db.query(
             "ex01",
             null, // 모든 컬럼 선택
-            "num = ?",
+            "$COLUMN_NUM = ?",
             arrayOf(num.toString()),
             null,
             null,
