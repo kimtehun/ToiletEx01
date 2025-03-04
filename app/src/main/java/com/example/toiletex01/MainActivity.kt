@@ -288,6 +288,16 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
     suspend fun copyDatabaseFromAssets(context: Context) {
 
         withContext(Dispatchers.IO) {
+            // 대상 DB 파일 경로
+            val dbFile = context.getDatabasePath("toiletdb.db")
+            // 파일이 이미 존재하면 복사하지 않음
+            if (dbFile.exists()) {
+                Log.d("DB_COPY", "Database file already exists: ${dbFile.path}")
+                return@withContext
+            }
+            // 부모 디렉터리가 없으면 생성
+            dbFile.parentFile?.mkdirs()
+
             try {
                 // assets에서 데이터베이스 파일 읽기
                 val assetManager = context.assets
