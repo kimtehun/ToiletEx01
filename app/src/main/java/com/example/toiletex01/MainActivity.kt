@@ -152,6 +152,53 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback ,
                     tag = location.num  // DB의 고유 id를 저장 (예: Int 타입)
                 }
 
+
+
+                marker.setOnClickListener {
+                    // AlertDialog 생성
+                    AlertDialog.Builder(this@MainActivity)
+                        .setTitle("작업 선택")
+                        .setMessage("원하는 작업을 선택하세요.")
+                        .setPositiveButton("정보 보기") { dialog, which ->
+                            // "정보 보기" 버튼 클릭: DB에서 상세 정보를 조회하고 표시
+                            val id = marker.tag as? Int
+                            if (id != null) {
+                                lifecycleScope.launch {
+                                    val detail = withContext(Dispatchers.IO) {
+                                        dbHelper.getToiletById(id)
+                                    }
+                                    showToiletInfo(detail)
+                                }
+                            } else {
+                                Toast.makeText(this@MainActivity, "정보를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                        .setNegativeButton("화장실 삭제") { dialog, which ->
+                            // "마커 삭제" 버튼 클릭: 지도에서 마커 제거 후, DB 삭제
+                            val id = marker.tag as? Int
+                            // 지도에서 제거
+                            marker.map = null
+                            // markerMap이 있다면, 거기서도 제거 (예시)
+                            id?.let { markerMap.remove(it) }
+                            if (id != null) {
+                                lifecycleScope.launch {
+                                    withContext(Dispatchers.IO) {
+                                        dbHelper.deleteToiletById(id)
+                                    }
+                                    runOnUiThread {
+                                        Toast.makeText(this@MainActivity, "화장실이 삭제되었습니다.", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            } else {
+                                Toast.makeText(this@MainActivity, "삭제할 정보를 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                        .show()
+                    true
+                }
+
+
+
 //                Log.d("MARKER_TAG", "마커 생성 - tag: ${location.num}")
 
 
