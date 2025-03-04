@@ -1,5 +1,6 @@
 package com.example.toiletex01
 
+import androidx.appcompat.app.AlertDialog
 import android.content.ContentValues.TAG
 import android.content.Context
 import android.os.Bundle
@@ -22,7 +23,8 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 
-class MainActivity : AppCompatActivity() , OnMapReadyCallback {
+class MainActivity : AppCompatActivity() , OnMapReadyCallback ,
+    AddToiletDialogFragment.OnAddToiletListener{
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var naverMap: NaverMap
@@ -75,12 +77,16 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
                 }
             mapFragment.getMapAsync(this@MainActivity)
 
+            // addToilet 버튼 이벤트 리스너 등록
+            binding.addToilet?.setOnClickListener {
+                val dialogFragment = AddToiletDialogFragment()
+                dialogFragment.show(supportFragmentManager, "AddToiletDialog")
+//            addToilet()
+            }
+
         }
 
-        // addToilet 버튼 이벤트 리스너 등록
-        binding.addToilet?.setOnClickListener {
-            addToilet()
-        }
+
 
 
     }
@@ -131,6 +137,8 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
             // 2. DB에서 마커 데이터를 가져옴 (예제에서는 로컬 DB에서 가져온다고 가정)
             val dbLocations = withContext(Dispatchers.IO) { getToiletLocationsFromDb() }
 
+
+
             dbLocations.forEach { location ->
                 // latitude, longitude가 String 타입인 경우 안전하게 변환 (또는 이미 Double 타입이면 바로 사용)
                 val lat = location.latitude.toDoubleOrNull() ?: 0.0
@@ -146,6 +154,8 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
 
 //                Log.d("MARKER_TAG", "마커 생성 - tag: ${location.num}")
 
+
+                /*
                 // 마커 클릭 시, tag를 이용해 DB에서 상세 정보 조회 후 UI에 표시
                 marker.setOnClickListener { overlay ->
                     val num = marker.tag as? Int
@@ -159,7 +169,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
                     }
                     true // 클릭 이벤트 처리가 완료되었음을 반환
                 }
-
+*/
                 markers.add(marker)
             }
 
@@ -181,20 +191,25 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
                     captionText = if (cluster.items.size > 1) "${cluster.items.size}" else ""
                     map = naverMap
                 }
-                marker.setOnClickListener { overlay ->
-                    // 예를 들어, 클러스터 내부의 첫 번째 아이템 정보를 표시하거나
-                    // 상세 화면으로 이동하는 로직 추가 가능
-                    val firstItem = cluster.items.firstOrNull()
-                    if (firstItem != null) {
-                        lifecycleScope.launch {
-                            val detail = withContext(Dispatchers.IO) {
-                                dbHelper.getToiletById(firstItem.num)
-                            }
-                            showToiletInfo(detail)
-                        }
-                    }
-                    true
-                }
+
+                //클러스터에 이벤트 리스너 부분을 단 아래부분이
+                //updateMarkersFromDb안에서 비동기로 처리하는 코루틴 스코프 안에있는
+                //market.setOnClickListener와 충돌하여 엇갈리는 결과가 나오는 현상이 있어서
+                //아래 부분을 주석처리 해줬고 실행하여 문제없이 해결 되었다.
+//                marker.setOnClickListener {
+//                    // 예를 들어, 클러스터 내부의 첫 번째 아이템 정보를 표시하거나
+//                    // 상세 화면으로 이동하는 로직 추가 가능
+//                    val firstItem = cluster.items.firstOrNull()
+//                    if (firstItem != null) {
+//                        lifecycleScope.launch {
+//                            val detail = withContext(Dispatchers.IO) {
+//                                dbHelper.getToiletById(firstItem.num)
+//                            }
+//                            showToiletInfo(detail)
+//                        }
+//                    }
+//                    true
+//                }
                 markers.add(marker)
             }
         }
@@ -386,7 +401,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
 
     private fun showToiletInfo(toilet: SimpleToiletEntity?) {
         if (toilet == null) {
-            androidx.appcompat.app.AlertDialog.Builder(this)
+            AlertDialog.Builder(this)
                 .setTitle("오류")
                 .setMessage("해당 화장실 정보를 찾을 수 없습니다.")
                 .setPositiveButton("확인", null)
@@ -408,7 +423,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
     """.trimIndent()
         }
 
-        androidx.appcompat.app.AlertDialog.Builder(this)
+        AlertDialog.Builder(this)
             .setTitle("화장실 상세 정보")
             .setMessage(infoText)
             .setPositiveButton("확인", null)
@@ -429,4 +444,25 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
             }
         }
     }
+
+    // DialogFragment에서 "추가하기"를 누르면 호출되는 콜백 메소드
+    override fun onAddToiletSubmit(toiletName: String, password: String) {
+        // 현재 위치(내장 위치 오버레이)에서 좌표를 얻어옵니다.
+        val currentLatLng: LatLng? = naverMap.locationOverlay.position
+        if (currentLatLng != null) {
+            val latitude = currentLatLng.latitude
+            val longitude = currentLatLng.longitude
+            lifecycleScope.launch {
+                withContext(Dispatchers.IO) {
+                    dbHelper.insertToiletRecord(toiletName, latitude, longitude, password)
+                }
+                runOnUiThread {
+                    Toast.makeText(this@MainActivity, "화장실 정보가 추가되었습니다.", Toast.LENGTH_SHORT).show()
+                }
+            }
+        } else {
+            Toast.makeText(this, "현재 위치 정보를 가져올 수 없습니다.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
 }
