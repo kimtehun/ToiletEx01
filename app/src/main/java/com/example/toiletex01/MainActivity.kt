@@ -41,6 +41,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
 
     companion object {
         private const val LOCATION_PERMISSION_REQUEST_CODE = 1000
+
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
