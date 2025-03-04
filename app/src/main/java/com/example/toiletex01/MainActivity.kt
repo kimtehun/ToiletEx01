@@ -414,4 +414,19 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
             .setPositiveButton("확인", null)
             .show()
     }
+
+    // addToilet 메소드: DB에 새로운 레코드를 삽입
+    private fun addToilet() {
+        lifecycleScope.launch {
+            // 백그라운드에서 새 레코드 추가
+            withContext(Dispatchers.IO) {
+                dbHelper.addToiletById()  // 새 레코드 삽입
+            }
+            updateMarkersFromDb()
+            // UI 스레드에서 결과 Toast 표시
+            runOnUiThread {
+                Toast.makeText(this@MainActivity, "새 화장실 정보가 추가되었습니다.", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
 }
