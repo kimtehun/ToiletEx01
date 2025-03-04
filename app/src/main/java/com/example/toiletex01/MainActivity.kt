@@ -49,6 +49,8 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
 
         setContentView(binding.root)
 
+
+
         // FusedLocationSource를 생성하면 SDK가 내부적으로 위치를 비동기 요청합니다.
         locationSource = FusedLocationSource(this, LOCATION_PERMISSION_REQUEST_CODE)
 
@@ -133,7 +135,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
                     tag = location.num  // DB의 고유 id를 저장 (예: Int 타입)
                 }
 
-                Log.d("MARKER_TAG", "마커 생성 - tag: ${location.num}")
+//                Log.d("MARKER_TAG", "마커 생성 - tag: ${location.num}")
 
                 // 마커 클릭 시, tag를 이용해 DB에서 상세 정보 조회 후 UI에 표시
                 marker.setOnClickListener { overlay ->
@@ -275,6 +277,7 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
 
     // suspend 함수로 정의하여 IO 스레드에서 복사 작업 실행
     suspend fun copyDatabaseFromAssets(context: Context) {
+
         withContext(Dispatchers.IO) {
             try {
                 // assets에서 데이터베이스 파일 읽기
