@@ -76,6 +76,13 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
             mapFragment.getMapAsync(this@MainActivity)
 
         }
+
+        // addToilet 버튼 이벤트 리스너 등록
+        binding.addToilet?.setOnClickListener {
+            addToilet()
+        }
+
+
     }
 
     override fun onMapReady(map: NaverMap) {
