@@ -299,7 +299,6 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
             dbFile.parentFile?.mkdirs()
 
             try {
-                // assets에서 데이터베이스 파일 읽기
                 val assetManager = context.assets
                 assetManager.open("toiletdb.db").use { input ->
                     FileOutputStream(dbFile).use { output ->
@@ -311,9 +310,9 @@ class MainActivity : AppCompatActivity() , OnMapReadyCallback {
                         output.flush()
                     }
                 }
+                Log.d("DB_COPY", "Database file copied to: ${dbFile.path}")
             } catch (e: Exception) {
-                e.printStackTrace()
-                // 예외 발생 시 적절한 처리가 필요합니다.
+                Log.e("DB_COPY", "Error copying database", e)
             }
         }
     }
