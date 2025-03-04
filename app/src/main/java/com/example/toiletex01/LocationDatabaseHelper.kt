@@ -140,4 +140,33 @@ class LocationDatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATAB
         Log.d("DB_INSERT", "새 레코드 삽입: num=$nextNum")
     }
 
+    fun deleteToiletById(num: Int) {
+        val db = writableDatabase
+        // 해당 num 값을 가진 레코드를 삭제하는 SQL 구문
+        val sql = "DELETE FROM $TABLE_TOILETS WHERE $COLUMN_NUM = ?"
+        db.execSQL(sql, arrayOf(num.toString()))
+        Log.d("DB_DELETE", "레코드 삭제: num=$num")
+    }
+
+    /**
+     * 새 레코드를 삽입하는 메소드.
+     * num 컬럼은 현재 테이블의 최대 num 값에 1을 더해 결정합니다.
+     */
+    fun insertToiletRecord(toiletName: String, latitude: Double, longitude: Double, pw: String) {
+        val db = writableDatabase
+
+        // 현재 테이블의 최대 num 값을 조회 (테이블에 레코드가 없으면 0 반환)
+        val cursor = db.rawQuery("SELECT COALESCE(MAX($COLUMN_NUM), 0) AS max_num FROM $TABLE_TOILETS", null)
+        var nextNum = 1
+        if (cursor.moveToFirst()) {
+            nextNum = cursor.getInt(0) + 1
+        }
+        cursor.close()
+
+        // INSERT 구문 실행
+        val sql = "INSERT INTO $TABLE_TOILETS ($COLUMN_NUM, $COLUMN_TOILET_NAME, $COLUMN_LATITUDE, $COLUMN_LONGITUDE, $COLUMN_PW) VALUES (?, ?, ?, ?, ?)"
+        db.execSQL(sql, arrayOf(nextNum, toiletName, latitude, longitude, pw))
+        Log.d("DB_INSERT", "새 레코드 삽입: num=$nextNum, toiletName=$toiletName, latitude=$latitude, longitude=$longitude, pw=$pw")
+    }
+
 }
